@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-const host = "amqp://guest:guest@0.0.0.0:5672"
+const host = "amqp://test:test@0.0.0.0:5672"
 
 func TestPublish(t *testing.T) {
 	q := New(host)
