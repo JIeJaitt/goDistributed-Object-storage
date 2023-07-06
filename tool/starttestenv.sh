@@ -24,8 +24,8 @@ export ES_SERVER=localhost:9200
 cd /Users/jiejaitt/GolandProjects/goDistributed-Object-storage/
 
 # 启动apiServer实例
-LISTEN_ADDRESS=10.29.2.1:12345 STORAGE_ROOT=/tmp/1 go run ./apiServer/apiServer.go &
-LISTEN_ADDRESS=10.29.2.2:12345 STORAGE_ROOT=/tmp/2 go run ./apiServer/apiServer.go &
+LISTEN_ADDRESS=10.29.2.1:12345  go run ./apiServer/apiServer.go &
+LISTEN_ADDRESS=10.29.2.2:12345  go run ./apiServer/apiServer.go &
 
 # 启动dataServer实例
 LISTEN_ADDRESS=10.29.1.1:12345 STORAGE_ROOT=/tmp/1 go run ./dataServer/dataServer.go &
