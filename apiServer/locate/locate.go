@@ -1,14 +1,15 @@
 package locate
 
 import (
+	"encoding/json"
 	"goDistributed-Object-storage/src/lib/rabbitmq"
+	"goDistributed-Object-storage/src/lib/rs"
+	"goDistributed-Object-storage/src/lib/types"
 	"os"
-	"strconv"
 	"time"
 )
 
-// 从消息队列里面接收消息
-func Locate(name string) string {
+func Locate(name string) (locateInfo map[int]string) {
 	q := rabbitmq.New(os.Getenv("RABBITMQ_SERVER"))
 	q.Publish("dataServers", name)
 	c := q.Consume()
@@ -16,12 +17,19 @@ func Locate(name string) string {
 		time.Sleep(time.Second)
 		q.Close()
 	}()
-	msg := <-c
-	s, _ := strconv.Unquote(string(msg.Body))
-	return s
+	locateInfo = make(map[int]string)
+	for i := 0; i < rs.ALL_SHARDS; i++ {
+		msg := <-c
+		if len(msg.Body) == 0 {
+			return
+		}
+		var info types.LocateMessage
+		json.Unmarshal(msg.Body, &info)
+		locateInfo[info.Id] = info.Addr
+	}
+	return
 }
 
-// 判断文件是否存在
 func Exist(name string) bool {
-	return Locate(name) != ""
+	return len(Locate(name)) >= rs.DATA_SHARDS
 }

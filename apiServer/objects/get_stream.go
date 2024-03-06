@@ -2,16 +2,19 @@ package objects
 
 import (
 	"fmt"
+	"goDistributed-Object-storage/apiServer/heartbeat"
 	"goDistributed-Object-storage/apiServer/locate"
-	"goDistributed-Object-storage/src/lib/objectstream"
-	"io"
+	"goDistributed-Object-storage/src/lib/rs"
 )
 
-func getStream(object string) (io.Reader, error) {
-	// 调用locate.Locate函数来获得这个object具体存储在dataServer的什么地方
-	server := locate.Locate(object)
-	if server == "" {
-		return nil, fmt.Errorf("object %s locate fail", object)
+func GetStream(hash string, size int64) (*rs.RSGetStream, error) {
+	locateInfo := locate.Locate(hash)
+	if len(locateInfo) < rs.DATA_SHARDS {
+		return nil, fmt.Errorf("object %s locate fail, result %v", hash, locateInfo)
 	}
-	return objectstream.NewGetStream(server, object)
+	dataServers := make([]string, 0)
+	if len(locateInfo) != rs.ALL_SHARDS {
+		dataServers = heartbeat.ChooseRandomDataServers(rs.ALL_SHARDS-len(locateInfo), locateInfo)
+	}
+	return rs.NewRSGetStream(locateInfo, dataServers, hash, size)
 }

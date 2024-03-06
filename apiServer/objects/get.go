@@ -1,21 +1,50 @@
 package objects
 
 import (
+	"goDistributed-Object-storage/src/lib/es"
 	"io"
 	"log"
 	"net/http"
+	"net/url"
+	"strconv"
 	"strings"
 )
 
 func get(w http.ResponseWriter, r *http.Request) {
-	object := strings.Split(r.URL.EscapedPath(), "/")[2]
-	// 从getStream中拿到文件的读取流
-	stream,err := getStream(object)
-	if err != nil {
-		log.Println(err)
+	name := strings.Split(r.URL.EscapedPath(), "/")[2]
+	versionId := r.URL.Query()["version"]
+	version := 0
+	var e error
+	if len(versionId) != 0 {
+		version, e = strconv.Atoi(versionId[0])
+		if e != nil {
+			log.Println(e)
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+	}
+	meta, e := es.GetMetadata(name, version)
+	if e != nil {
+		log.Println(e)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	if meta.Hash == "" {
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
-	// 把文件的读取流写入到HTTP响应中
-	io.Copy(w,stream)
+	hash := url.PathEscape(meta.Hash)
+	stream, e := GetStream(hash, meta.Size)
+	if e != nil {
+		log.Println(e)
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+	_, e = io.Copy(w, stream)
+	if e != nil {
+		log.Println(e)
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+	stream.Close()
 }
