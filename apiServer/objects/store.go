@@ -1,22 +1,30 @@
 package objects
 
 import (
+	"fmt"
+	"goDistributed-Object-storage/apiServer/locate"
+	"goDistributed-Object-storage/src/lib/utils"
 	"io"
 	"net/http"
+	"net/url"
 )
 
-func storeObject(r io.Reader, object string) (int, error) {
-	// 调用putStream函数，得到一个stream
-	// putStream是object的一个文件流用于写入
-	stream,err:= putStream(object)
-	if err != nil {
-		return http.StatusServiceUnavailable, err
+func storeObject(r io.Reader, hash string, size int64) (int, error) {
+	if locate.Exist(url.PathEscape(hash)) {
+		return http.StatusOK, nil
 	}
-	// 把HTTP请求正文（文件内容）写入这个stream
-	io.Copy(stream, r)
-	err = stream.Close()
-	if err != nil {
-		return http.StatusInternalServerError,err
+
+	stream, e := putStream(url.PathEscape(hash), size)
+	if e != nil {
+		return http.StatusInternalServerError, e
 	}
-	return http.StatusOK,err
+
+	reader := io.TeeReader(r, stream)
+	d := utils.CalculateHash(reader)
+	if d != hash {
+		stream.Commit(false)
+		return http.StatusBadRequest, fmt.Errorf("object hash mismatch, calculated=%s, requested=%s", d, hash)
+	}
+	stream.Commit(true)
+	return http.StatusOK, nil
 }

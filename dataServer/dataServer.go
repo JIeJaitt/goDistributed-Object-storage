@@ -4,12 +4,14 @@ import (
 	"goDistributed-Object-storage/dataServer/heartbeat"
 	"goDistributed-Object-storage/dataServer/locate"
 	"goDistributed-Object-storage/dataServer/objects"
+	"goDistributed-Object-storage/dataServer/temp"
 	"log"
 	"net/http"
 	"os"
 )
 
 func main() {
+	locate.CollectObjects()
 	// 每隔一段时间就会发送一个心跳信息给到这个apiServer的exchange
 	// 所有连接到apiServer exchange的那些接口服务节点就会收到当前数据服务节点的心跳信息
 	// 从而就会知道当前这个数据节点是存活状态
@@ -25,5 +27,6 @@ func main() {
 	// objects Handler 用于处理对象的 API
 	// 用来给接口服务提供一个存取对象的服务
 	http.HandleFunc("/objects/", objects.Handler)
+	http.HandleFunc("/temp/", temp.Handler)
 	log.Fatal(http.ListenAndServe(os.Getenv("LISTEN_ADDRESS"), nil))
 }
