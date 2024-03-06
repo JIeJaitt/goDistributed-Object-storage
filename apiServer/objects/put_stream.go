@@ -1,8 +1,8 @@
 package objects
 
 import (
-	"goDistributed-Object-storage/apiServer/heartbeat"
 	"fmt"
+	"goDistributed-Object-storage/apiServer/heartbeat"
 	"goDistributed-Object-storage/src/lib/objectstream"
 )
 

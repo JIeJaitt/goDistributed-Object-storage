@@ -4,6 +4,7 @@ import (
 	"goDistributed-Object-storage/apiServer/heartbeat"
 	"goDistributed-Object-storage/apiServer/locate"
 	"goDistributed-Object-storage/apiServer/objects"
+	"goDistributed-Object-storage/apiServer/versions"
 	"log"
 	"net/http"
 	"os"
@@ -16,5 +17,6 @@ func main() {
 	http.HandleFunc("/objects/", objects.Handler)
 	// 发送定位文件名的消息以及处理数据服务locate反馈回来的消息
 	http.HandleFunc("/locate/", locate.Handler)
+	http.HandleFunc("/versions/", versions.Handler)
 	log.Fatal(http.ListenAndServe(os.Getenv("LISTEN_ADDRESS"), nil))
 }

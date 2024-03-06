@@ -15,4 +15,3 @@ func getStream(object string) (io.Reader, error) {
 	}
 	return objectstream.NewGetStream(server, object)
 }
-
