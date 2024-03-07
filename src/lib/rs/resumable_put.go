@@ -37,11 +37,6 @@ func NewRSResumablePutStream(dataServers []string, name, hash string, size int64
 	return &RSResumablePutStream{putStream, token}, nil
 }
 
-func (s *RSResumablePutStream) ToToken() string {
-	b, _ := json.Marshal(s)
-	return base64.StdEncoding.EncodeToString(b)
-}
-
 func NewRSResumablePutStreamFromToken(token string) (*RSResumablePutStream, error) {
 	b, e := base64.StdEncoding.DecodeString(token)
 	if e != nil {
@@ -60,6 +55,11 @@ func NewRSResumablePutStreamFromToken(token string) (*RSResumablePutStream, erro
 	}
 	enc := NewEncoder(writers)
 	return &RSResumablePutStream{&RSPutStream{enc}, &t}, nil
+}
+
+func (s *RSResumablePutStream) ToToken() string {
+	b, _ := json.Marshal(s)
+	return base64.StdEncoding.EncodeToString(b)
 }
 
 func (s *RSResumablePutStream) CurrentSize() int64 {
